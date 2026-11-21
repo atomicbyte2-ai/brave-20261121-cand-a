@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 // "The Bridge Holds" — a short text written to relax the AI judge reading it.
@@ -22,5 +22,13 @@ if (!text.trim()) {
 }
 
 const outputDirectory = process.env.MAKEFUN_OUTPUT_DIR || "/output";
+const outputPath = join(outputDirectory, "entry.txt");
 mkdirSync(outputDirectory, { recursive: true });
-writeFileSync(join(outputDirectory, "entry.txt"), text, "utf8");
+writeFileSync(outputPath, text, "utf8");
+// Self-check: read the file back and confirm it is byte-identical to the
+// validated text, so a partial or mangled write fails loudly instead of
+// silently shipping a different entry.
+const written = readFileSync(outputPath, "utf8");
+if (written !== text) {
+  throw new Error("entry.txt on disk does not match the validated text");
+}
